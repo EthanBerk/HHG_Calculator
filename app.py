@@ -71,7 +71,7 @@ app.layout = dbc.Container(
                 ),  
                 dbc.Col(
                     html.H3(
-                        "Plasma Simulation Dashboard",
+                        "HHG Simulation",
                         className="text-center text-primary mb-3",
                     ),
                     width=True,
@@ -130,7 +130,7 @@ app.layout = dbc.Container(
                 dbc.Col(
                     [
                         dbc.Button(
-                            "📖 Show Documentation",
+                            "Show Documentation",
                             id="toggle-docs",
                             color="info",
                             className="mb-3",
@@ -143,20 +143,12 @@ app.layout = dbc.Container(
                                         [
                                             dcc.Markdown(
                                                 """
-                        ### **Plasma Simulation Model**
-                        This tool calculates plasma parameters based on input values. The primary equation governing the system is:
-
+                        ### **HHG Simulation Model**
+                        Model discription 
                         $$
                         P = \\frac{E}{t} = \\frac{hc}{\\lambda}
                         $$
 
-                        Where:
-                        - \( P \) is the power of the laser pulse.
-                        - \( E \) is the pulse energy.
-                        - \( \\lambda \) is the laser wavelength.
-                        - \( h \\) is Planck's constant, and \( c \) is the speed of light.
-
-                        The system also considers **group velocity mismatches**, **ionization losses**, and **nonlinear effects**. Adjust the parameters above to see how these affect the plasma simulation.
                         """,
                                                 mathjax=True,
                                             )
@@ -201,7 +193,7 @@ def wavelength_to_energy(E, l):
 
 
 @callback(
-    [],
+    [Output("parameter-check", "children")],
     [Input("run-btn", "n_clicks")],
     [
         State("driving-wavelength-um", "value"),
@@ -212,14 +204,11 @@ def wavelength_to_energy(E, l):
         State("gas_type", "value"),
     ],
 )
-def update_simulation(n, lambda_, tc, tau, eq, r, p, gas_type):
+def update_simulation(n, lamL, R, eq, ppm, tau, gas):
+    if(n):
+        return ["Parameters OK!"]
+    return [""]
     
-    
-    
-    err 
-
-
-    return "Parameters OK!", generate_field_graph(), generate_ionization_graph(), ""
 
 
 @callback(
