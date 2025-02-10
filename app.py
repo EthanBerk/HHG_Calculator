@@ -138,13 +138,13 @@ app.layout = dbc.Container(
                         dbc.Collapse(
                             dbc.Card(
                                 [
-                                    dbc.CardHeader("📘 How the Calculator Works"),
+                                    dbc.CardHeader("How the simulation Works"),
                                     dbc.CardBody(
                                         [
                                             dcc.Markdown(
                                                 """
                         ### **HHG Simulation Model**
-                        Model discription 
+                        Model description 
                         $$
                         P = \\frac{E}{t} = \\frac{hc}{\\lambda}
                         $$
