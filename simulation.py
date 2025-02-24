@@ -3,7 +3,6 @@ import scipy as sp
 from scipy.integrate import cumulative_trapezoid
 from scipy.interpolate import PchipInterpolator, interp1d
 import pandas as pd
-from refractiveindex import RefractiveIndexMaterial
 import plotly.graph_objects as go
 from math import factorial, gamma
 
