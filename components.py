@@ -13,7 +13,7 @@ def create_output_row(label: str, unit: str, description: str, output_id: str):
                                 [
                                     dcc.Markdown(f""" ${label}[${unit}$]$  """, mathjax=True),
                                     html.P(
-                                        "0.0", className="text-warning border text-center rounded-3"
+                                        "-", className="text-warning border text-center rounded-3", id=output_id
                                     ),
                                 ],
                                 
