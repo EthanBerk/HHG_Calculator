@@ -8,6 +8,7 @@ from cards import *
 from simulation import run_simulation
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.CYBORG])
+server = app.server
 
 
 def generate_field_graph():
