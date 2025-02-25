@@ -201,7 +201,7 @@ def computed_values_card2():
                                         [
                                             create_output_row(
                                                 "b",
-                                                "mm",
+                                                "μm",
                                                 "Beam waist",
                                                 "beam-waist",
                                             ),

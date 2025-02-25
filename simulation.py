@@ -98,7 +98,9 @@ def run_simulation(lamL, R, eq, ppm, tau, gas, T):
 
     # Calculate critical ionization using difference:
     eta_cr = 1.0 / (1 + lamL**2 * re * Nbar / (2 * np.pi * (n0 - nH)))
-    results["eta_cr"] = eta_cr * 100
+    results["eta_cr"] = eta_cr * 100 
+    
+    
     # Interpolate to find appropriate intensity:
     I_cr, _, results["peak-ionization-graph"] = interpEta(
         gas, A, wL, t, f, eta_cr, I_cut, NT
@@ -151,13 +153,22 @@ def run_simulation(lamL, R, eq, ppm, tau, gas, T):
     b = kL * w0**2
     results["b"] = b * 1000
 
-    nc = 1.45
-    # refractive index of silica cladding
+    
+    nc = 1.45# refractive index of silica cladding
+    
     nuv = (1 / 2) * (nH**2 + 1) / np.sqrt(nc**2 - 1)
+    
     alpha1 = (um / 2 / np.pi) ** 2 * (lamL**2 / R**3) * nuv
+    
     L = 1 / (2 * alpha1)
+    
+
+    #convert to meters
+    L_f = L_f / 1000
+    
+    
     P_tran = np.exp(-L_f / L)
-    results["P_tran"] = P_tran
+    results["P_tran"] = P_tran *100
     if P_tran < 0.9:
         results["err"] = """Transmission is below threshold (90%)."""
 
@@ -267,7 +278,7 @@ def calculate_form_factors(gas, Ng, p, lamH):
     c = 2.99792e8  # speed of light [m/s]
 
     # Load data
-    data = pd.read_csv(f"./data/{gas.lower()}.txt", delim_whitespace=True).values
+    data = pd.read_csv(f"./data/{gas.lower()}.txt", sep=r"\s+").values
 
     if gas == "N2":
         energies_c, delta_c, beta_c = data[:, 0], data[:, 1], data[:, 2]
@@ -442,7 +453,7 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
     # I0 = interp_I(f * eta_cr)
     I_cr = interp_I(eta_cr)
     interp_eta = interp1d(I_list, eta_peak, fill_value="extrapolate")
-    eta_min = interp_eta(I_cut)
+    eta_cut = interp_eta(I_cut)
     # Convert W/m^2 to 10^14 W/cm^2:
     # I0p = I0 * 1e-4 * 1e-14
     I_cr = I_cr * 1e-4 * 1e-14
@@ -452,7 +463,7 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
     # scale eta
     eta_peak = eta_peak * 100
     eta_cr = eta_cr * 100
-    eta_min = eta_min * 100
+    eta_cut = eta_cut * 100
 
     # Create plot:
     fig = go.Figure()
@@ -487,7 +498,7 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
     )
 
     # Add horizontal lines:
-    fig.add_hline(y=eta_min, line=dict(color="red"), annotation_text=r"$\eta_{cut}$")
+    fig.add_hline(y=eta_cut, line=dict(color="red"), annotation_text=r"$\eta_{cut}$")
     # fig.add_hline(
     #     y=f * eta_cr * 100,
     #     line=dict(color="blue", dash="dash"),
@@ -507,15 +518,19 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
     # )
 
     # Adjust x-axis limits:
-    dI = 0.25 * abs(I_cr - I_cut)
+    l_bound = min(I_cr, I_cut)
+    r_bound = max(I_cr, I_cut)
+    dI = 0.25 * abs(r_bound - l_bound)
     fig.update_xaxes(
         title_text=r"$\text{Peak Intensity} [10^{14} W/\text{cm}^2]$",
-        range=[I_cut - dI, I_cr + dI],
+        range=[l_bound - dI, r_bound + dI],
     )
 
-    dI = 0.25 * abs(eta_cr - eta_min)
+    l_bound = min(eta_cr, eta_cut)
+    r_bound = max(eta_cr, eta_cut)
+    dI = 0.25 * abs(r_bound - l_bound)
     fig.update_yaxes(
-        title_text="Peak Ionization [%]", range=[eta_min - dI, eta_cr + dI]
+        title_text="Peak Ionization [%]", range=[l_bound - dI, r_bound + dI]
     )
     fig.update_layout(
         title="Field and Ionization Fraction",
@@ -524,4 +539,4 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
     )
 
     # return I0, I_max, eta_min, fig and remove conversion
-    return I_cr / (1e-4 * 1e-14), eta_min / 100, fig
+    return I_cr / (1e-4 * 1e-14), eta_cut / 100, fig
