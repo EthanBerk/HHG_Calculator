@@ -25,7 +25,7 @@ def input_card():
                                 "radius-um",
                                 100,
                             ),
-                        ]
+                        ],
                     ),
                     dbc.Row(
                         [
@@ -51,8 +51,9 @@ def input_card():
                                 "p", "Bar", "Pressure of capillary", "pressure-bar", 10
                             ),
                             create_input_row(
-                                "T_c", "fs", "Pulse duration", "pulse_duration-fs", 10
+                                "\\tau", "cycles", "Pulse duration", "pulse-duration", 10
                             ),
+                            
                         ]
                     ),
                     dbc.Row(
@@ -73,7 +74,7 @@ def input_card():
                                 ]
                             ),
                             create_input_row(
-                                "T", "K", "Temperature of Gas", "temp_gas", 293
+                                "T_c", "fs", "length of optical cycle", "optical-cycle", 5.003
                             ),
                         ]
                     ),
@@ -92,7 +93,7 @@ def input_card():
                     ),
                     html.Div(
                         id="parameter-check",
-                        className="text-danger mt-2 text-center",
+                        className="text-warning  mt-2 text-center",
                     ),
                 ]
             ),
@@ -134,7 +135,8 @@ def computed_values_card1():
                                         ]
                                     )
                                 ],
-                                width=6,
+                                md=6,
+                                sm=12,
                             ),
                             dbc.Col(
                                 [
@@ -152,10 +154,17 @@ def computed_values_card1():
                                                 "minimum pressure required to phase match",
                                                 "pressure-minimum",
                                             ),
+                                            create_output_row(
+                                                "p_0",
+                                                "torr",
+                                                "minimum pressure in torr",
+                                                "pressure-minimum-torr",
+                                            ),
                                         ]
                                     )
                                 ],
-                                width=6,
+                                md=6,
+                                sm=12,
                             ),
                         ]
                     )
@@ -181,40 +190,42 @@ def computed_values_card2():
                                             create_output_row(
                                                 "L_\\text{abs}",
                                                 "mm",
-                                                "Absorption length",
+                                                "Absorption depth, or the length at which the harmonic intensity decays by 1/e",
                                                 "absorption-length",
                                             ),
                                             create_output_row(
                                                 "L_\\text{f}",
                                                 "mm",
-                                                "fiber length",
+                                                "Absorption limited length of the medium. Defined as 6 times the Absorption depth",
                                                 "fiber-length",
                                             ),
                                         ]
                                     )
                                 ],
-                                width=6,
+                                md=6,
+                                sm=12,
                             ),
                             dbc.Col(
                                 [
                                     dbc.ListGroup(
                                         [
                                             create_output_row(
-                                                "b",
+                                                "w_0",
                                                 "μm",
-                                                "Beam waist",
+                                                "Gaussian beam (beam focused into capillary) waist  that optimizes coupling into the fundamental mode ",
                                                 "beam-waist",
                                             ),
                                             create_output_row(
-                                                "w_0",
+                                                "b",
                                                 "mm",
-                                                "confocal parameter",
+                                                "confocal parameter of the optimized gaussian beam waist",
                                                 "confocal-parm",
                                             ),
                                         ]
                                     )
                                 ],
-                                width=6,
+                                md=6,
+                                sm=12,
                             ),
                         ]
                     )

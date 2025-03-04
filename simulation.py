@@ -6,6 +6,8 @@ import pandas as pd
 import plotly.graph_objects as go
 from math import factorial, gamma
 
+plot_template = "plotly_dark";
+
 
 def run_simulation(lamL, R, eq, ppm, tau, gas, T):
     results = {}
@@ -44,8 +46,7 @@ def run_simulation(lamL, R, eq, ppm, tau, gas, T):
     LT = 5 * tau  # temporal window size [s]
     NC = round(LT / TC)  # num of cycles in window
     NT = 100 * NC + 1  # num of samples (at least 10/cycle)
-    t = np.linspace(-LT / 2, LT / 2, NT)  # vector of time points [s]
-    dt = t[2] - t[1]
+  
 
     # Spatial initialization:
     # r = np.linspace(0, R, 1000)
@@ -70,6 +71,8 @@ def run_simulation(lamL, R, eq, ppm, tau, gas, T):
     # Calculate minimum pressure required to phase match:
     p0 = delta_wg / (n0 - 1)
     results["p0"] = p0
+    
+    results["p0_torr"] = p0 * 750.061683
     f = 1 - p0 / ppm
     if f < 0:
         results["err"] = (
@@ -93,14 +96,18 @@ def run_simulation(lamL, R, eq, ppm, tau, gas, T):
     E_cut = 0.901 * I_cut * R**2 * tau * 1e3
     results["E_cut"] = E_cut
 
+
+    t = np.linspace(-LT / 2, LT / 2, NT)  # vector of time points [s]
+
     # Initialize temporal amplitude profile:
-    A = np.exp(-2 * np.log(2) * (t / tau) ** 2)
+   
 
     # Calculate critical ionization using difference:
     eta_cr = 1.0 / (1 + lamL**2 * re * Nbar / (2 * np.pi * (n0 - nH)))
     results["eta_cr"] = eta_cr * 100 
     
-    
+    A = np.exp(-2 * np.log(2) * (t / tau) ** 2)
+
     # Interpolate to find appropriate intensity:
     I_cr, _, results["peak-ionization-graph"] = interpEta(
         gas, A, wL, t, f, eta_cr, I_cut, NT
@@ -128,13 +135,47 @@ def run_simulation(lamL, R, eq, ppm, tau, gas, T):
 
     # Normalize the envelope using the intensity and then calculate
     # the electric field:
-    # A = np.sqrt(2 * I0 / c / eps0) * (A / max(A))
-    # E = A * np.cos(wL * t)
+    
+    A = np.sqrt(2 * I_cr / c / eps0) * (A / max(A))
+ 
+    E = A * np.cos(wL * t)
+
 
     # Calculate ionization rate and ionization fraction at peak:
-    # _,W_ADK = ADK_mod(E,gas);
-    # eta = 1 - exp(-cumulative_trapezoid(t,W_ADK));
-    # eta_peak = eta(NT/2 + 0.5);
+    
+  
+    _,W_ADK = ADK_mod(E,gas);
+
+
+   
+    eta = 1-np.exp(-cumulative_trapezoid(W_ADK,t));
+    
+    tfs = t * 1e15
+    
+    # Create figure:
+    fig = go.Figure()
+    
+    # Plot Electric Field:
+    fig.add_trace(go.Scatter(x=tfs, y=E, mode='lines', line=dict(color='red', width=1), name='Electric Field'))
+    
+    # Plot Envelope:
+    fig.add_trace(go.Scatter(x=tfs, y=A, mode='lines', line=dict(color='blue', dash='dash', width=2), name='Envelope'))
+    fig.add_trace(go.Scatter(x=tfs, y=-A, mode='lines', line=dict(color='blue', dash='dash', width=2), showlegend=False))
+    
+    # Plot Ionization Fraction on secondary y-axis:
+    fig.add_trace(go.Scatter(x=tfs, y=eta * 100, mode='lines', line=dict(color='magenta', width=3), name='Ion. Fraction', yaxis='y2'))
+    
+    # Update layout with dual y-axes:
+    fig.update_layout(
+        title="Field and Ionization Fraction",
+        template=plot_template,
+        margin=dict(l=20, r=20, t=40, b=20),
+        xaxis=dict(title="Time Delay [fs]"),
+        yaxis=dict(title="Field [N/C]", side="left", showgrid=False),
+        yaxis2=dict(title="Ion. Fraction [%]", overlaying="y", side="right", showgrid=False),
+        legend=dict(x=0.01, y=0.99, bgcolor="rgba(0,0,0,0)", bordercolor="rgba(255,255,255,0.5)")
+    )
+    results["field-ionization-graph"] = fig
 
     #  Calculate fraction of critical ionization that we are phase
     #   matching (for ppm=p0, f=0; for ppm->inf, f->1; for ppm<p0,
@@ -387,6 +428,9 @@ def ADK_mod(E, gas):
     wt = np.finfo(float).eps + qe * np.abs(E) / np.sqrt(
         2 * me * Ipev
     )  # Tunneling frequency [rad/s]
+
+
+    
     n = Z * np.sqrt(Iph / Ipev)  # Effective principal quantum number
     ln = n - 1
 
@@ -422,6 +466,7 @@ def ADK_mod(E, gas):
             * (4 * wp / wt) ** (2 * n - abs(m) - 1)
             * np.exp(-4 * wp / (3 * wt))
         )
+        
 
         # Correct near barrier-ionization (Tong & Lin 2005):
         W_ADK_2 = W_ADK * np.exp(-alpha * (Z**2 * Iph / Ipev) * (wt / wp))
@@ -452,6 +497,7 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
     )
     # I0 = interp_I(f * eta_cr)
     I_cr = interp_I(eta_cr)
+    # I0 = interp_I(f*eta_cr)
     interp_eta = interp1d(I_list, eta_peak, fill_value="extrapolate")
     eta_cut = interp_eta(I_cut)
     # Convert W/m^2 to 10^14 W/cm^2:
@@ -533,8 +579,8 @@ def interpEta(gas, A, wL, t, f, eta_cr, I_cut, NT):
         title_text="Peak Ionization [%]", range=[l_bound - dI, r_bound + dI]
     )
     fig.update_layout(
-        title="Field and Ionization Fraction",
-        template="plotly_dark",
+        title="Peak Ionization vs. Intensity",
+        template=plot_template,
         margin=dict(l=20, r=20, t=40, b=20),
     )
 

@@ -27,7 +27,7 @@ def create_output_row(label: str, unit: str, description: str, output_id: str):
                         ],
                         width=7,
                     ),
-                ]
+                ],class_name="g-2"
             )
         ]
     )
@@ -59,8 +59,10 @@ def create_input_row(label: str, unit: str, description: str, input_id: str, def
                         ],
                         width=11,
                     ),
-                ]
+                ],
+                class_name="g-0"
             )
         ],
-        width=6,
+        md=6,
+        sm=12,
     )
